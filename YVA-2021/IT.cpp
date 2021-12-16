@@ -5,7 +5,7 @@
 namespace IT
 {
 	IT::Entry::Entry(int idxfirstLE, std::string id, std::string scope, IDTYPE idtype, int value)
-		: idxfirstLE(idxfirstLE), iddatatype(IDDATATYPE::Numbers), idtype(idtype), id(id), scope(scope)
+		: idxfirstLE(idxfirstLE), iddatatype(IDDATATYPE::Number), idtype(idtype), id(id), scope(scope)
 	{
 		this->value.vint = value;
 	}
@@ -22,13 +22,10 @@ namespace IT
 		this->value.vstr.len = (char)strlen(value);
 		strcpy_s(this->value.vstr.str, value);
 	}
-
-
-
 	IT::Entry::Entry(int idxfirstLE, std::string id, std::string scope, IDDATATYPE iddatatype, IDTYPE idtype)
 		: idxfirstLE(idxfirstLE), iddatatype(iddatatype), idtype(idtype), id(id), scope(scope)
 	{
-		if (this->iddatatype == IDDATATYPE::Numbers) {
+		if (this->iddatatype == IDDATATYPE::Number) {
 			value.vint = TI_INT_DEFAULT;
 		}
 		else if (this->iddatatype == IDDATATYPE::Symbol) {
@@ -114,10 +111,10 @@ namespace IT
 	void ShowTable(IdTable& idtable, std::ofstream* stream)
 	{
 		*stream << std::setw(5) << "index" << std::setw(10) << "name" << std::setw(10) << "type" << std::setw(15) << "id type" << std::setw(10) << "scope" << std::setw(20) << "lexTable index" << '\n';
-		for (int i = 0; i < idtable.size; ++i) 
+		for (int i = 0; i < idtable.size; ++i)
 		{
 			*stream << std::setw(5) << i << std::setw(10) << idtable.table[i].id << std::setw(10);
-			if (idtable.table[i].iddatatype == IDDATATYPE::Numbers)
+			if (idtable.table[i].iddatatype == IDDATATYPE::Number)
 				*stream << "int ";
 			else if (idtable.table[i].iddatatype == IDDATATYPE::Symbol)
 				*stream << "pin ";

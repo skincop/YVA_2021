@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "CG.h"
+#include "Generation.h"
 #include "LT.h"
 #include "IT.h"
 
@@ -43,11 +43,9 @@ void CG::Generation::constants()
 		if (idTable.table[i].idtype == IT::IDTYPE::L)
 		{
 			out << "\t" << idTable.table[i].id;
-			if (idTable.table[i].iddatatype == IT::IDDATATYPE::Line)
+			if (idTable.table[i].iddatatype == IT::IDDATATYPE::Line || idTable.table[i].iddatatype == IT::IDDATATYPE::Symbol)
 				out << " BYTE " << '\'' << idTable.table[i].value.vstr.str << '\'' << ", 0";
-			if (idTable.table[i].iddatatype == IT::IDDATATYPE::Symbol)
-				out << " BYTE " << '\'' << idTable.table[i].value.vpin.str << '\'' << ", 0";
-			if (idTable.table[i].iddatatype == IT::IDDATATYPE::Numbers)
+			if (idTable.table[i].iddatatype == IT::IDDATATYPE::Number)
 				out << " DWORD " << idTable.table[i].value.vint;
 			out << '\n';
 		}
@@ -62,11 +60,11 @@ void CG::Generation::data()
 			out << '\t';
 			out << '_' << idTable.table[i].scope << idTable.table[i].id;
 			out << "\t\tDWORD 0 ";
-			if (idTable.table[i].iddatatype == IT::IDDATATYPE::Symbol)
-				out << "; pin\n";
-			else if (idTable.table[i].iddatatype == IT::IDDATATYPE::Line)
+			if (idTable.table[i].iddatatype == IT::IDDATATYPE::Line)
 				out << "; str\n";
-			else if (idTable.table[i].iddatatype == IT::IDDATATYPE::Numbers)
+			else if (idTable.table[i].iddatatype == IT::IDDATATYPE::Symbol)
+				out << "; char\n";
+			else
 				out << "; int\n";
 		}
 	}
@@ -101,7 +99,7 @@ void CG::Generation::code()
 				if (lexTable.table[i].lexema == LEX_ID)
 				{
 					stackRet += 4;
-					out << '_' << idTable.table[lexTable.table[i].idxTI].id << ": DWORD";
+					out << '_' << idTable.table[lexTable.table[i].idxTI].scope << idTable.table[lexTable.table[i].idxTI].id << ": DWORD";
 					if (lexTable.table[i - 2].lexema != LEX_LEFTTHESIS)
 						out << ", ";
 				}
@@ -131,21 +129,14 @@ void CG::Generation::code()
 			}
 			else
 			{
-				if (idTable.table[lexTable.table[i + 1].idxTI].iddatatype == IT::IDDATATYPE::Line) {
+				if (idTable.table[lexTable.table[i + 1].idxTI].iddatatype == IT::IDDATATYPE::Line || idTable.table[lexTable.table[i + 1].idxTI].iddatatype == IT::IDDATATYPE::Symbol) {
 					if (idTable.table[lexTable.table[i + 1].idxTI].idtype != IT::IDTYPE::L)
 						out << "\tmov\t\teax, " << '_' << idTable.table[lexTable.table[i + 1].idxTI].scope
 						<< idTable.table[lexTable.table[i + 1].idxTI].id << "\n\tret\t\t" << stackRet << std::endl;
 					else
 						out << "\tmov\t\teax, offset " << idTable.table[lexTable.table[i + 1].idxTI].id << "\n\tret\t\t" << stackRet << std::endl;
 				}
-				else if (idTable.table[lexTable.table[i + 1].idxTI].iddatatype == IT::IDDATATYPE::Symbol) {
-					if (idTable.table[lexTable.table[i + 1].idxTI].idtype != IT::IDTYPE::L)
-						out << "\tmov\t\teax, " << '_' << idTable.table[lexTable.table[i + 1].idxTI].scope
-						<< idTable.table[lexTable.table[i + 1].idxTI].id << "\n\tret\t\t" << stackRet << std::endl;
-					else
-						out << "\tmov\t\teax, offset " << idTable.table[lexTable.table[i + 1].idxTI].id << "\n\tret\t\t" << stackRet << std::endl;
-				}
-				else if (idTable.table[lexTable.table[i + 1].idxTI].iddatatype == IT::IDDATATYPE::Numbers) {
+				else {
 					if (idTable.table[lexTable.table[i + 1].idxTI].idtype == IT::IDTYPE::L)
 						out << "\tmov\t\teax, " << idTable.table[lexTable.table[i + 1].idxTI].id
 						<< "\n\tret\t\t" << stackRet << std::endl;
@@ -159,7 +150,7 @@ void CG::Generation::code()
 		}
 		case LEX_PRINT: {
 			if (lexTable.table[i + 1].lexema == LEX_ID) {
-				if (idTable.table[lexTable.table[i + 1].idxTI].iddatatype == IT::IDDATATYPE::Numbers) {
+				if (idTable.table[lexTable.table[i + 1].idxTI].iddatatype == IT::IDDATATYPE::Number) {
 					out << "\tpush\t\t" << '_' << idTable.table[lexTable.table[i + 1].idxTI].scope
 						<< idTable.table[lexTable.table[i + 1].idxTI].id;
 					out << "\n\tcall\t\t_outInt\n\n";
@@ -171,7 +162,7 @@ void CG::Generation::code()
 				}
 			}
 			else if (lexTable.table[i + 1].lexema == LEX_LITERAL) {
-				if (idTable.table[lexTable.table[i + 1].idxTI].iddatatype == IT::IDDATATYPE::Numbers) {
+				if (idTable.table[lexTable.table[i + 1].idxTI].iddatatype == IT::IDDATATYPE::Number) {
 					out << "\tpush\t\t" << idTable.table[lexTable.table[i + 1].idxTI].id;
 					out << "\n\tcall\t\t_outInt\n\n";
 				}
@@ -183,20 +174,18 @@ void CG::Generation::code()
 			break;
 		}
 		case LEX_EQUAL: {
-			indOflex = i - 1;
+			indOflex = i - 1;	
 			while (lexTable.table[i].lexema != LEX_SEMICOLON) {
-				if (lexTable.table[i].lexema == LEX_ID) {
-
+				if (lexTable.table[i].lexema == LEX_ID) {	
 					if (idTable.table[lexTable.table[i].idxTI].idtype != IT::IDTYPE::F)
 					{
-						out << "\tpush\t\t" << '_' << idTable.table[lexTable.table[i].idxTI].scope
-							<< idTable.table[lexTable.table[i].idxTI].id << "\n";
+						
+							out << "\tpush\t\t" << '_' << idTable.table[lexTable.table[i].idxTI].scope
+								<< idTable.table[lexTable.table[i].idxTI].id << "\n";
 					}
-
-
 				}
 				if (lexTable.table[i].lexema == LEX_LITERAL) {
-					if (idTable.table[lexTable.table[i].idxTI].iddatatype == IT::IDDATATYPE::Numbers)
+					if (idTable.table[lexTable.table[i].idxTI].iddatatype == IT::IDDATATYPE::Number)
 						out << "\tpush\t\t";
 					else
 						out << "\tpush\t\toffset ";
@@ -246,6 +235,48 @@ void CG::Generation::code()
 					out << "\tjz\t\tEXIT_DIV_ON_NULL\n";
 					out << "\tcdq\n";
 					out << "\tidiv\t\tebx\n";
+					out << "\tjo\t\tEXIT_OVERFLOW\n";
+					out << "\tpush\t\teax\n";
+					out << "\n";
+				}
+				if (lexTable.table[i].lexema == LEX_MODULUS)
+				{
+					out << "\n";
+					out << "\tpop\t\tebx\n";
+					out << "\tpop\t\teax\n";
+					out << "\ttest\t\tebx, ebx\n";
+					out << "\tjz\t\tEXIT_DIV_ON_NULL\n";
+					out << "\tcdq\n";
+					out << "\tidiv\t\tebx\n";
+					out << "\tjo\t\tEXIT_OVERFLOW\n";
+					out << "\tpush\t\tedx\n";
+					out << "\n";
+				}
+				if (lexTable.table[i].lexema == LEX_AND)
+				{
+					out << "\n";
+					out << "\tpop\t\teax\n";
+					out << "\tpop\t\tebx\n";
+					out << "\tand\t\teax, ebx\n";
+					out << "\tjo\t\tEXIT_OVERFLOW\n";
+					out << "\tpush\t\teax\n";
+					out << "\n";
+				}
+				if (lexTable.table[i].lexema == LEX_OR)
+				{
+					out << "\n";
+					out << "\tpop\t\teax\n";
+					out << "\tpop\t\tebx\n";
+					out << "\tor\t\teax, ebx\n";
+					out << "\tjo\t\tEXIT_OVERFLOW\n";
+					out << "\tpush\t\teax\n";
+					out << "\n";
+				}
+				if (lexTable.table[i].lexema == LEX_NOT)
+				{
+					out << "\n";
+					out << "\tpop\t\teax\n";
+					out << "\tnot\t\teax\n";
 					out << "\tjo\t\tEXIT_OVERFLOW\n";
 					out << "\tpush\t\teax\n";
 					out << "\n";
@@ -350,12 +381,12 @@ void CG::Generation::code()
 			++ifStatement;
 			operation = ' ';
 			if (lexTable.table[i + 2].lexema != LEX_LITERAL)
-				out << "\tpush\t\t" << '_' << idTable.table[lexTable.table[i + 2].idxTI].scope << idTable.table[lexTable.table[i + 2].idxTI].id << "\n";
+				out << "\tpush\t\t" << '_' << idTable.table[lexTable.table[i+2].idxTI].scope << idTable.table[lexTable.table[i + 2].idxTI].id << "\n";
 			else
 				out << "\tpush\t\t" << idTable.table[lexTable.table[i + 2].idxTI].id << "\n";
 
 			if (lexTable.table[i + 4].lexema != LEX_LITERAL)
-				out << "\tpush\t\t" << '_' << idTable.table[lexTable.table[i + 2].idxTI].scope << idTable.table[lexTable.table[i + 4].idxTI].id << "\n";
+				out << "\tpush\t\t" << '_' << idTable.table[lexTable.table[i+2].idxTI].scope << idTable.table[lexTable.table[i + 4].idxTI].id << "\n";
 			else
 				out << "\tpush\t\t" << idTable.table[lexTable.table[i + 4].idxTI].id << "\n";
 
@@ -369,7 +400,7 @@ void CG::Generation::code()
 				if (lexTable.table[j].lexema == LEX_MREQUAL) ++countOfMrequals;
 				else if (lexTable.table[j + 1].lexema == LEX_LSEQUAL) --countOfMrequals;
 				j++;
-			}
+			}	
 			if (lexTable.table[j + 1].lexema == LEX_ELSE)
 				flagelse = 1;
 			switch (lexTable.table[i + 3].lexema) {
@@ -469,16 +500,17 @@ void CG::Generation::code()
 			else if (func)
 			{
 				out << '_' << idTable.table[lexTable.table[indOfFunc].idxTI].id << " ENDP\n\n";
-				func = false;
+				func = false; 
+				indOfFunc = 0;
 			}
 			else
 			{
 				out << "\tcall\t\tExitProcess\n\nmain ENDP\n";
 			}
-			indOfFunc = 0;
+			
 			break;
 		}
-
+		
 		default:break;
 		}
 	}

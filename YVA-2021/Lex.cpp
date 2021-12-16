@@ -6,19 +6,19 @@
 #include "Log.h"
 
 char Lex::GetToken(std::string str) {
-	std::array<std::string, 31> regexps = {
+	std::array<std::string, 35> regexps = {
 		REG_DECLARE, REG_STRING, REG_INTEGER,REG_SYMBOL , REG_FUNCTION, REG_RETURN, REG_PRINT,
 		REG_MAIN, REG_INTEGER_LIT, REG_SYMBOL_LIT, REG_STRING_LIT, REG_SEMICOLON, REG_COMMA,
 		REG_MREQUAL, REG_LSEQUAL, REG_LEFTTHESIS, REG_RIGHTTHESIS, REG_PLUS, REG_MINUS,
-		REG_STAR, REG_DIRSLASH, REG_EQUAL,REG_IF, REG_ELSE, REG_MORE, REG_LESS, REG_LESS_OR_EQUALS,
-		REG_MORE_OR_EQUALS, REG_FULL_EQUALS, REG_NOT_FULL_EQUALS, REG_ID
+		REG_STAR, REG_DIRSLASH, REG_MODULUS, REG_EQUAL,REG_IF, REG_ELSE, REG_MORE, REG_LESS, REG_LESS_OR_EQUALS,
+		REG_MORE_OR_EQUALS, REG_FULL_EQUALS, REG_NOT_FULL_EQUALS,REG_AND,REG_OR,REG_NOT, REG_ID
 	};
-	std::array<char, 31> tokens = {
+	std::array<char, 35> tokens = {
 		LEX_DECLARE, LEX_STRING, LEX_INTEGER,LEX_SYMBOL, LEX_FUNCTION, LEX_RETURN, LEX_PRINT,
 		LEX_MAIN, LEX_INTEGER_LIT, LEX_SYMBOL_LIT,LEX_STRING_LIT , LEX_SEMICOLON, LEX_COMMA,
 		LEX_MREQUAL, LEX_LSEQUAL, LEX_LEFTTHESIS, LEX_RIGHTTHESIS, LEX_PLUS, LEX_MINUS,
-		LEX_STAR, LEX_DIRSLASH, LEX_EQUAL, LEX_IF, LEX_ELSE, LEX_MORE, LEX_LESS, LEX_LESS_OR_EQUALS,
-		LEX_MORE_OR_EQUALS, LEX_FULL_EQUALS, LEX_NOT_FULL_EQUALS, LEX_ID
+		LEX_STAR, LEX_DIRSLASH,LEX_MODULUS, LEX_EQUAL, LEX_IF, LEX_ELSE, LEX_MORE, LEX_LESS, LEX_LESS_OR_EQUALS,
+		LEX_MORE_OR_EQUALS, LEX_FULL_EQUALS, LEX_NOT_FULL_EQUALS,LEX_AND,LEX_OR,LEX_NOT,LEX_ID,
 	};
 	for (int i = 0; i < sizeof(regexps) / sizeof(regexps[0]); ++i) {
 		if (std::regex_match(str, std::regex(regexps[i]))) {
@@ -51,15 +51,14 @@ void Lex::Scan(LT::LexTable& lextable, IT::IdTable& idtable, In::IN& in, Parm::P
 			char token = Lex::GetToken(word);
 			int ti_idx = TI_NULLIDX;
 
-			iddatatype = (token == LEX_INTEGER || token == LEX_INTEGER_LIT) ? IT::IDDATATYPE::Numbers :
+			iddatatype = (token == LEX_INTEGER || token == LEX_INTEGER_LIT) ? IT::IDDATATYPE::Number :
 				(token == LEX_SYMBOL || token == LEX_SYMBOL_LIT) ? IT::IDDATATYPE::Symbol :
 				(token == LEX_STRING || token == LEX_STRING_LIT) ? IT::IDDATATYPE::Line : iddatatype;
-			
 
 			switch (token)
 			{
 				case LEX_MAIN:
-					IT::Add(idtable, { lextable.size + 1, word, ti_scope.back(), IT::IDDATATYPE::Numbers, IT::IDTYPE::F });
+					IT::Add(idtable, { lextable.size + 1, word, ti_scope.back(), IT::IDDATATYPE::Number, IT::IDTYPE::F });
 					cur_scope = "main";
 					isMain == 0 ? ++isMain : throw ERROR_THROW(128);
 					break;
@@ -115,19 +114,6 @@ void Lex::Scan(LT::LexTable& lextable, IT::IdTable& idtable, In::IN& in, Parm::P
 				case LEX_LSEQUAL: 
 					ti_scope.pop_back();
 					break;
-				case LEX_SYMBOL_LIT:
-					word = word.substr(1, word.length() - 2);
-					if (word.length() > TI_STR_MAXSIZE) throw ERROR_THROW_IN(124, line, -1);
-					ti_idx = IT::isLit(idtable, word);
-					if (ti_idx == TI_NULLIDX) {
-						IT::Add(idtable, { lextable.size, "L" + std::to_string(counter), ti_scope.back(),  word.c_str(),IT::IDTYPE::L });
-						++counter;
-						ti_idx = idtable.size - 1;
-					}
-					//IT::Entry::Entry(int idxfirstLE, std::string id, std::string scope, const char* value, IDTYPE idtype)
-					//: idxfirstLE(idxfirstLE), iddatatype(IDDATATYPE::Symbol), idtype(idtype), id(id), scope(scope)
-					token = LEX_LITERAL;
-					break;
 				case LEX_STRING_LIT:
 					word = word.substr(1, word.length() - 2);
 					if (word.length() > TI_STR_MAXSIZE) throw ERROR_THROW_IN(124, line, -1);
@@ -139,21 +125,37 @@ void Lex::Scan(LT::LexTable& lextable, IT::IdTable& idtable, In::IN& in, Parm::P
 					}
 					token = LEX_LITERAL;
 					break;
+				case LEX_SYMBOL_LIT:
+					word = word.substr(1, word.length() - 2);
+					if (word.length() > TI_STR_MAXSIZE) throw ERROR_THROW_IN(124, line, -1);
+					ti_idx = IT::isLit(idtable, word);
+					if (ti_idx == TI_NULLIDX) {
+						IT::Add(idtable, { lextable.size, "L" + std::to_string(counter), ti_scope.back(),  word.c_str(),IT::IDTYPE::L });
+						++counter;
+						ti_idx = idtable.size - 1;
+					}
+
+					token = LEX_LITERAL;
+					break;
 				case LEX_INTEGER_LIT:
+					if (std::stoll(word) > INT_MAX || std::stoll(word) < INT_MIN) {
+						
+						throw ERROR_THROW_IN(130, line, -1);
+						break;
+					}
 					if (lextable.size >= 2 && lextable.table[lextable.size - 1].lexema == LEX_MINUS && lextable.table[lextable.size - 1].lexema != LEX_ID)
 					{
 						word = "-" + word;
 						--lextable.size;
 					}
-					if (word[word.length() - 1] == 'o') {
+					 if (word[word.length() - 1] == 'o') {
 						word = std::to_string(std::stoi(word, 0, 8));
 					}
 					if (word[word.length() - 1] == 'b') {
 						word = std::to_string(std::stoi(word, 0, 2));
 					}
-					if (std::stoi(word) > INT_MAX || std::stoi(word) < INT_MIN)
-						throw ERROR_THROW_IN(131, line, -1);
-					ti_idx = IT::isLit(idtable, word);
+				
+					ti_idx = IT::isLit(idtable, std::stoi(word));
 					if (ti_idx == TI_NULLIDX) {
 						IT::Add(idtable, { lextable.size, "L" + std::to_string(counter), ti_scope.back(), IT::IDTYPE::L, std::stoi(word) });
 						++counter;
@@ -162,8 +164,8 @@ void Lex::Scan(LT::LexTable& lextable, IT::IdTable& idtable, In::IN& in, Parm::P
 
 					token = LEX_LITERAL;
 					break;
-				case LEX_STRING:
 				case LEX_SYMBOL:
+				case LEX_STRING:
 				case LEX_INTEGER:
 					token = LEX_DATATYPE;
 					break;

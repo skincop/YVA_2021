@@ -6,11 +6,11 @@
 #include "IT.h"
 #include "LT.h"
 #include "Lex.h"
-#include "GRB.h"
+#include "Greibach.h"
 #include "MFST.h"
 #include "PN.h"
 #include "Semantic.h"
-#include "CG.h"
+#include "Generation.h"
 
 int main(int argc, char* argv[])
 {

@@ -6,12 +6,15 @@ int Preorities(char operation) {
 	if (operation == LEX_LEFTTHESIS || operation == LEX_RIGHTTHESIS) {
 		return 1;
 	}
-	if (operation == LEX_MINUS || operation == LEX_PLUS) {
+	if (operation == LEX_MINUS || operation == LEX_PLUS ) {
 		return 2;
 	}
-	if (operation == LEX_STAR || operation == LEX_DIRSLASH) {
+	if (operation == LEX_STAR || operation == LEX_DIRSLASH  ) {
 		return 3;
 	}
+	//if (operation == LEX_AND || operation == LEX_OR) {
+	//	return 0;
+	//}
 }
 
 void PN::ConvertToPolishNotation(LT::LexTable &lexTable, IT::IdTable &idtable, int index, LT::Entry* expression)

@@ -1,33 +1,26 @@
-number method fi(number x, number y) 
-{ 
- new number z; 
- z= (y*45)+234/(x*(x+y)) * 34/45; 
- return z; 
-};
-line method fs (line a, line b) 
-{ 
- new line c; 
- c = 'test line'; 
- return c; 
-}; 
+
+number method sum(number a,line c,number b)
+{
+output c;
+new number absum;
+absum= a + b;
+return absum;
+}
+symbol method char (number a)
+{
+
+return 'c';
+}
+
 main 
-{ 
- new number x; 
- new number y; 
- new number z; 
- new line sa; 
- new line sb; 
- new line sc; 
- new number method strln(line p); 
- x = 1; 
- y = 5 * 5; 
- sa = '1234567890'; 
- sb = '1234567890'; 
- z = fi(x,y); 
- sc = fs(sa,sb); 
- x = strln(sc);
- print z; 
- print sc; 
- print y;
- return 0; 
-};
+{
+output 'main';
+new line str;
+str='111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111251';
+new number func=sum(10,str,15);
+output func;
+
+
+
+return 10;
+}

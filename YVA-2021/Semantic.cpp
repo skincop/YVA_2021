@@ -3,6 +3,7 @@
 #include"Error.h"
 #include"IT.h"
 #include"LT.h"
+#include"Regs.h"
 #include"Lex.h"
 #include <vector>
 #include <iostream>
@@ -22,7 +23,7 @@ namespace Semantic
 	{
 		bool is_ok = true;
 		bool is_main = false;
-		int b = 0;
+		int b = 0,o=0,p=0;
 		int funcArgv = 0;
 		auto scopeFunc = TI_SCOPE_DEFAULT;
 		auto typeVar = idTable.table[0].iddatatype;
@@ -30,18 +31,40 @@ namespace Semantic
 		IT::IDDATATYPE ret;
 		IT::IDDATATYPE retFunc;
 		IT::IDDATATYPE funcType;
+
+
+		/*std::array<std::string, 10> codeWord = {
+			REG_MAIN,REG_DECLARE,REG_INTEGER,REG_SYMBOL,
+			REG_FUNCTION,REG_RETURN,REG_PRINT,REG_MAIN,
+			REG_IF,REG_ELSE
+
+		};*/
+		
 		for (auto i = 0; i < lexTable.size; i++)
 		{
 
 			switch (lexTable.table[i].lexema)
 			{
 
+			case LEX_DECLARE:
+				if (lexTable.table[i + 1].lexema == LEX_DATATYPE && lexTable.table[i + 2].lexema == LEX_ID) {
+					p = lexTable.table[i + 2].idxTI;
+					while (idTable.table[lexTable.table[i + 2].idxTI].scope == idTable.table[p].scope) {
+						p--;
+						if (idTable.table[lexTable.table[i + 2].idxTI].id == idTable.table[p].id && idTable.table[lexTable.table[i + 2].idxTI].idtype!=IT::IDTYPE::L) {
+							std::cout << "name" + idTable.table[p].id << std::endl;
+							std::cout << "scope" + idTable.table[p].scope << std::endl;
+							is_ok = false;
+							throw ERROR_THROW(315);
+						}
 
-
+					}
+				}
+				break;
 			case LEX_EQUAL:
-
-				if (idTable.table[lexTable.table[i - 1].idxTI].idtype == IT::IDTYPE::F)
-				{
+				
+				if (idTable.table[lexTable.table[i - 1].idxTI].idtype == IT::IDTYPE::F) {// функции нельз€ присовить значение
+					
 					is_ok = false;
 					throw ERROR_THROW(304);
 
@@ -51,6 +74,7 @@ namespace Semantic
 
 				if (lexTable.table[i - 1].lexema == LEX_ID && idTable.table[lexTable.table[i + 1].idxTI].idtype == IT::IDTYPE::F)
 				{
+				
 					int j = i + 2;
 					std::vector<std::string> funcArguments;
 					std::vector<std::string> arguments;
@@ -60,7 +84,8 @@ namespace Semantic
 					{
 						if (lexTable.table[j].lexema == LEX_ID || lexTable.table[j].lexema == LEX_LITERAL)
 						{
-							if (idTable.table[lexTable.table[j].idxTI].iddatatype == IT::IDDATATYPE::Numbers)
+							
+							if (idTable.table[lexTable.table[j].idxTI].iddatatype == IT::IDDATATYPE::Number)
 								arguments.push_back("0");
 							if (idTable.table[lexTable.table[j].idxTI].iddatatype == IT::IDDATATYPE::Line)
 								arguments.push_back("1");
@@ -77,13 +102,14 @@ namespace Semantic
 					{
 						if (lexTable.table[l].lexema == LEX_ID || lexTable.table[l].lexema == LEX_LITERAL)
 						{
-							if (idTable.table[lexTable.table[l].idxTI].iddatatype == IT::IDDATATYPE::Numbers)
+							
+							if (idTable.table[lexTable.table[l].idxTI].iddatatype == IT::IDDATATYPE::Number)
 								funcArguments.push_back("0");
 							else if (idTable.table[lexTable.table[l].idxTI].iddatatype == IT::IDDATATYPE::Line)
 								funcArguments.push_back("1");
 							else if (idTable.table[lexTable.table[l].idxTI].iddatatype == IT::IDDATATYPE::Symbol)
 								funcArguments.push_back("2");
-							
+
 						}
 						l++;
 					}
@@ -91,48 +117,48 @@ namespace Semantic
 					{
 						is_ok = false;
 						throw ERROR_THROW(303);
+						std::cout << "123";
 					}
-					else if (arguments.size() == funcArguments.size() && arguments != funcArguments)
+					if (arguments.size() == funcArguments.size() && arguments != funcArguments)
 					{
 						is_ok = false;
+						std::cout << "456";
 						throw ERROR_THROW(302);
 					}
 
-
-
-
-					if (idTable.table[lexTable.table[i - 1].idxTI].iddatatype != idTable.table[lexTable.table[i + 1].idxTI].iddatatype)
-					{
-						is_ok = false;
-						throw ERROR_THROW(316);
-
-					}
-
-				}
-				///—просить
-
-				if (lexTable.table[i - 1].lexema == LEX_ID && (lexTable.table[i + 1].lexema == LEX_ID || lexTable.table[i + 1].lexema == LEX_LITERAL))
-				{
-					if (idTable.table[lexTable.table[i - 1].idxTI].iddatatype != idTable.table[lexTable.table[i + 1].idxTI].iddatatype)
-					{
-						is_ok = false;
-						throw ERROR_THROW_IN(305, lexTable.table[i + 1].sn, -1);
-					}
 				}
 
 
+					o = i;
+					while (lexTable.table[o].lexema != LEX_SEMICOLON)
+					{
+						if (lexTable.table[o].lexema == LEX_ID || lexTable.table[o].lexema == LEX_LITERAL)
+						{
+							if (idTable.table[lexTable.table[o].idxTI].idtype == IT::IDTYPE::F) {
+								while (lexTable.table[o].lexema != LEX_RIGHTTHESIS) {
+									o++;
+								}
+							}
+							if (lexTable.table[o].lexema == LEX_ID || lexTable.table[o].lexema == LEX_LITERAL)
+							{
+								if (idTable.table[lexTable.table[i - 1].idxTI].iddatatype != idTable.table[lexTable.table[o].idxTI].iddatatype)
+								{
+
+									is_ok = false;
+									throw ERROR_THROW(305);
+									break;
+								}
+							}
+						}
+						o++;
+					}
 				break;
 
+				case LEX_FUNCTION:
+					
+					
 
-			case LEX_FUNCTION:
-				if (lexTable.table[i - 2].lexema == LEX_DECLARE)			//прототип
-				{
-
-
-
-				}
-
-				else if (lexTable.table[i + 1].lexema == LEX_ID && lexTable.table[i + 2].lexema == LEX_LEFTTHESIS && lexTable.table[i - 2].lexema != LEX_DECLARE) // функци€
+				if (lexTable.table[i + 1].lexema == LEX_ID && lexTable.table[i + 2].lexema == LEX_LEFTTHESIS && lexTable.table[i - 2].lexema != LEX_DECLARE) // функци€
 				{
 					int p = i;
 
@@ -155,8 +181,9 @@ namespace Semantic
 				}
 				break;
 			case LEX_MAIN:
+				
 				b = i;
-				retFunc = IT::IDDATATYPE::Numbers;
+				retFunc = IT::IDDATATYPE::Number;
 				while (lexTable.table[b].lexema != LEX_RETURN)
 				{
 					b++;
@@ -171,6 +198,7 @@ namespace Semantic
 				break;
 
 			case LEX_LSEQUAL:
+			
 				scopeFunc = TI_SCOPE_DEFAULT;
 				break;
 
@@ -178,18 +206,22 @@ namespace Semantic
 
 
 			case LEX_ID:
-
-				// если id(лит) = ,то не была объ€вленна
+			
+				// если id(лит) = ,то не была объ€вленна //
 
 				if (lexTable.table[i + 1].lexema == LEX_EQUAL && idTable.table[lexTable.table[i].idxTI].idtype == IT::IDTYPE::L)
 				{
 					is_ok = false;
 					throw ERROR_THROW(317);
 				}
+				break;
 
-				return is_ok;
+				
+				
 
 			}
 		}
+		return is_ok;
 	}
+	
 }

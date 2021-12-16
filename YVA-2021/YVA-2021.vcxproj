@@ -75,6 +75,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\TEST</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -140,9 +141,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CG.cpp" />
+    <ClCompile Include="Generation.cpp" />
     <ClCompile Include="Error.cpp" />
-    <ClCompile Include="GRB.cpp" />
+    <ClCompile Include="Greibach.cpp" />
     <ClCompile Include="In.cpp" />
     <ClCompile Include="IT.cpp" />
     <ClCompile Include="Lex.cpp" />
@@ -158,9 +159,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CG.h" />
+    <ClInclude Include="Generation.h" />
     <ClInclude Include="Error.h" />
-    <ClInclude Include="GRB.h" />
+    <ClInclude Include="Greibach.h" />
     <ClInclude Include="IT.h" />
     <ClInclude Include="Lex.h" />
     <ClInclude Include="LT.h" />

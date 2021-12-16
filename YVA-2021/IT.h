@@ -6,12 +6,12 @@
 #define TI_STR_DEFAULT	0x00		
 #define TI_SYMBOL_DEFAULT	0x00		
 #define TI_NULLIDX		0xffffffff	
-#define TI_STR_MAXSIZE	255			 
+#define TI_STR_MAXSIZE	251 
 #define TI_SCOPE_DEFAULT "global"
 
 namespace IT
 {
-	enum class IDDATATYPE { Numbers = 1, Line = 2 ,Symbol=3};
+	enum class IDDATATYPE { Number = 1, Line = 2, Symbol = 3 };
 	enum class IDTYPE { V = 1, F = 2, P = 3, L = 4 };
 
 	struct Entry
@@ -26,7 +26,7 @@ namespace IT
 			int vint;
 			struct
 			{
-				char str[TI_STR_MAXSIZE - 1];
+				char str[TI_STR_MAXSIZE + 1];
 				int len;
 			} vstr;
 			struct

@@ -42,7 +42,7 @@
     <ClCompile Include="Lex.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="GRB.cpp">
+    <ClCompile Include="Greibach.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="MFST.cpp">
@@ -51,10 +51,10 @@
     <ClCompile Include="PN.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Semantic.cpp">
+    <ClCompile Include="Generation.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="CG.cpp">
+    <ClCompile Include="Semantic.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,7 +86,7 @@
     <ClInclude Include="Lex.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="GRB.h">
+    <ClInclude Include="Greibach.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="MFST.h">
@@ -95,17 +95,14 @@
     <ClInclude Include="PN.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Semantic.h">
+    <ClInclude Include="Generation.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="CG.h">
+    <ClInclude Include="Semantic.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="in.txt">
-      <Filter>Файлы ресурсов</Filter>
-    </Text>
     <Text Include="log.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
@@ -113,6 +110,9 @@
       <Filter>Файлы ресурсов</Filter>
     </Text>
     <Text Include="mfst.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
+    <Text Include="in.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
   </ItemGroup>

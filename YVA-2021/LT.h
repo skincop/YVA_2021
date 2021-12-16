@@ -6,7 +6,7 @@
 #define LT_TI_NULLIDX	0xfffffff	
 #define LEX_INTEGER		'n'	
 #define LEX_STRING		's'
-#define LEX_SYMBOL		'p'
+#define LEX_SYMBOL		'c'
 #define LEX_DATATYPE	't'
 #define LEX_ID			'i'	
 #define LEX_INTEGER_LIT	'2'
@@ -38,6 +38,10 @@
 #define LEX_IF			'e'
 #define LEX_ELSE		'y'
 #define LEX_COMMERCIAL_AT '@'
+#define LEX_AND 'N'
+#define LEX_OR 'O'
+#define LEX_NOT 'B'
+#define LEX_MODULUS '%'
 
 namespace LT {
 	struct Entry {

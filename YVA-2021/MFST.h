@@ -1,6 +1,6 @@
 #pragma once
 #include "stdafx.h"
-#include "GRB.h"
+#include "Greibach.h"
 #include "LT.h"
 class my_stack_SHORT :public std::stack<short> {
 public:

@@ -1,0 +1,31 @@
+
+number method sum(number a,number b)
+{
+new number absum;
+absum=a+b;
+return absum;
+}
+
+main 
+{
+output '10';
+new number avg;
+avg	=sum(20,25);
+output avg;
+output '123';
+new number x;
+x= ( 5 + 10 ) && 15;
+output x;
+x= 5 + 10 && 15;
+output x;
+x=(15) && 15;
+output x;
+x=15 && 15;
+output x;
+
+return 0;
+}
+
+
+
+
